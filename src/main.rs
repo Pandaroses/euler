@@ -28,7 +28,7 @@ fn euler_10() -> usize {
     }
     primes.into_iter().sum()
 }
-// 5ms
+// 5ms, created by chatgpt, not MINE but here for reference
 fn euler_10_ai() -> usize {
     const LIM: usize = 2000000;
     let mut is_prime = vec![true; LIM];
@@ -80,20 +80,21 @@ fn euler_11() -> usize {
         01 70 54 71 83 51 54 69 16 92 33 48 61 43 52 01 89 19 67 48"
         .lines()
         .collect();
-    let mut input: [[usize; 20]; 20] = [[0; 20]; 20];
+    let mut arr: [[usize; 20]; 20] = [[0; 20]; 20];
     for i in 0..19 {
         let split_lines: Vec<usize> = input_str_lines[i]
             .split_whitespace()
             .map(|b| b.parse::<usize>().unwrap())
             .collect();
         for y in 0..19 {
-            input[i][y] = split_lines[y];
+            arr[i][y] = split_lines[y];
         }
     }
     let (mut max, mut x, mut y, mut d, mut dl) = (0, 0, 0, 0, 0);
+    // checks if y overflow or x overflow or left diagonal overflow, as right diagonal overflow is y_block | x_block
     let (mut y_block, mut x_block, mut d_block) = (false, false, true);
-    let l = input.len();
-    for (i, row) in input.clone().iter_mut().enumerate() {
+    let l = arr.len();
+    for (i, row) in arr.clone().iter_mut().enumerate() {
         if !y_block && i > l - 4 {
             y_block = true;
         }
@@ -105,16 +106,16 @@ fn euler_11() -> usize {
                 d_block = false;
             }
             if !(y_block | x_block) {
-                d = row[s] * &input[i + 1][s + 1] * &input[i + 2][s + 2] * &input[i + 3][s + 3];
+                d = row[s] * &arr[i + 1][s + 1] * &arr[i + 2][s + 2] * &arr[i + 3][s + 3];
             }
             if !(x_block) {
                 x = row[s] * row[s + 1] * row[s + 2] * row[s + 3];
             }
             if !y_block {
-                y = row[s] * &input[i + 1][s] * &input[i + 2][s] * &input[i + 3][s];
+                y = row[s] * &arr[i + 1][s] * &arr[i + 2][s] * &arr[i + 3][s];
             }
             if !(y_block | d_block) {
-                dl = row[s] * &input[i + 1][s - 1] * &input[i + 2][s - 2] * &input[i + 3][s - 3];
+                dl = row[s] * &arr[i + 1][s - 1] * &arr[i + 2][s - 2] * &arr[i + 3][s - 3];
             }
             max = max.max(x).max(y).max(d).max(dl);
         }
@@ -122,4 +123,9 @@ fn euler_11() -> usize {
         d_block = true;
     }
     max
+}
+
+pub fn euler_11_flat() -> usize {
+    let arr: [usize; 400];
+    0
 }
