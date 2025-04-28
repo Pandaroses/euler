@@ -1,7 +1,9 @@
+use std::ops::IndexMut;
+
 fn main() {
     use std::time::Instant;
     let now = Instant::now();
-    let out = euler_11();
+    let out = euler_51();
     let elapsed = now.elapsed();
     println!("output: {:?} | elapsed: {:.2?}", out, elapsed);
 }
@@ -162,4 +164,105 @@ pub fn euler_11_flat() -> usize {
     }
 
     0
+}
+
+// i didn't read
+pub fn euler_51() -> usize {
+    let mut mult = 100;
+    let mut primes = vec![true; mult];
+    primes[0] = false;
+    primes[1] = false;
+    let mut digits;
+    let mut index_val: usize = 2;
+    let mut cp;
+    let mut count = 0;
+
+    loop {
+        count = 0;
+        for i in 2..primes.len() {
+            if primes[i] {
+                let mut j = i * i;
+                while j < primes.len() {
+                    primes[j] = false;
+                    j += i;
+                }
+            }
+        }
+        while index_val < mult {
+            if primes[index_val] {
+                digits = vec![];
+                cp = index_val;
+                while cp > 0 {
+                    digits.push(cp % 10);
+                    cp /= 10;
+                }
+                digits.reverse();
+                // n is how many digits to set as "wild";
+                let l = digits.len().clone();
+                for n in 2..=l - 1 {
+                    let mut idx: Vec<Vec<usize>> = vec![];
+                    let mut data = vec![];
+                    combination(0, n, l, &mut data, &mut idx);
+                    for c in idx {
+                        let mut res = vec![];
+                        count = 0;
+                        for i in 0..=9 {
+                            data = digits.clone();
+                            for v in c.clone().into_iter() {
+                                data[v] = i;
+                            }
+                            cp = 0;
+                            if data[0] == 0 {
+                                break;
+                            }
+                            for digit in data.into_iter() {
+                                cp = cp * 10 + digit;
+                            }
+                            if cp >= mult {
+                                // simple prime checking
+                                let mut isprime = true;
+                                for i in 2..=cp.isqrt() {
+                                    if primes[i] {
+                                        if cp % i == 0 {
+                                            isprime = false;
+                                            break;
+                                        }
+                                    }
+                                }
+                                if isprime {
+                                    res.push(cp);
+                                    count += 1;
+                                }
+                            } else if primes[cp] {
+                                res.push(cp);
+                                count += 1;
+                            }
+                        }
+                        if count == 8 {
+                            res.sort();
+                            return res[0];
+                        }
+                    }
+                }
+            }
+            index_val += 1;
+        }
+        mult *= 10;
+        if primes.len() < mult {
+            primes.resize_with(mult, || true);
+        }
+    }
+}
+
+fn combination(i: usize, r: usize, d: usize, data: &mut Vec<usize>, res: &mut Vec<Vec<usize>>) {
+    if data.len() == r {
+        res.push(data.clone());
+        return;
+    }
+
+    for x in i..d {
+        data.push(x);
+        combination(x + 1, r, d, data, res);
+        data.pop();
+    }
 }
