@@ -72,40 +72,57 @@ fn write_row_to_readme(
     let separator_line = lines.next().unwrap_or("");
 
     // 2) Parse existing data rows
-    let mut entries: Vec<(usize, String)> = lines
-        .filter(|l| l.trim_start().starts_with('|'))
-        .filter_map(|l| {
-            let cols: Vec<&str> = l.trim().split('|').collect();
-            cols.get(1)
-                .and_then(|s| s.trim().parse::<usize>().ok())
-                .map(|num| (num, l.trim().to_string()))
-        })
-        .collect();
+    let mut problem_entries: Vec<(usize, String)> = Vec::new();
+    let mut extra_entries: Vec<String> = Vec::new();
 
-    // 3) Create your new row
+    for line in lines {
+        if !line.trim_start().starts_with('|') {
+            continue;
+        }
+        let cols: Vec<&str> = line.trim().split('|').collect();
+        if let Some(cell) = cols.get(1) {
+            if let Ok(num) = cell.trim().parse::<usize>() {
+                problem_entries.push((num, line.trim().to_string()));
+            } else {
+                extra_entries.push(line.trim().to_string());
+            }
+        } else {
+            extra_entries.push(line.trim().to_string());
+        }
+    }
+
+    // 3) Create the new row
     let new_row = format!(
         "| {:>2} | {:>4} | {:>7.3} | {:>8.3} | {:>9.3} | {:>7.3} | {:>11.3} |",
         problem, iters, min, mean, median, max, stddev
     );
-    // Remove any old entry & insert the new one
-    entries.retain(|&(n, _)| n != problem);
-    entries.push((problem, new_row));
-    entries.sort_by_key(|&(n, _)| n);
 
-    // 4) Rebuild the block
+    // 4) Update entries
+    problem_entries.retain(|&(n, _)| n != problem);
+    problem_entries.push((problem, new_row));
+    problem_entries.sort_by_key(|&(n, _)| n);
+
+    // 5) Rebuild the block
     let mut new_block = String::new();
-    new_block.push_str("\n"); // ensure a clean linebreak
+    new_block.push('\n');
     new_block.push_str(header_line);
     new_block.push('\n');
     new_block.push_str(separator_line);
     new_block.push('\n');
-    for &(_, ref row) in &entries {
+
+    for entry in extra_entries {
+        new_block.push_str(&entry);
+        new_block.push('\n');
+    }
+
+    for &(_, ref row) in &problem_entries {
         new_block.push_str(row);
         new_block.push('\n');
     }
-    new_block.push_str("\n"); // pad before end marker
 
-    // 5) Write it all back
+    new_block.push('\n');
+
+    // 6) Write it all back
     let new_readme = format!("{}{}{}", head, new_block, tail);
     fs::write("README.md", new_readme).expect("failed to write README.md");
 }

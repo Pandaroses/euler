@@ -4,10 +4,12 @@ solutions to project euler problems
 ## Benchmark Results
 
 
+<!-- BENCHMARK_TABLE_START -->
+
+
 | Problem | Runs | Min (ms) | Mean (ms) | Median (ms) | Max (ms) | Stddev (ms) |
 |-------:|-----:|---------:|----------:|-----------:|---------:|------------:|
-<!-- BENCHMARK_TABLE_START -->
-| 11 |   10 |   0.006 |    0.007 |     0.006 |   0.012 |       0.002 |
-| 51 |   10 |  92.357 |  101.312 |   102.284 | 103.506 |       3.067 |
+| 11 |   10 |   0.006 |    0.006 |     0.006 |   0.010 |       0.001 |
+| 51 |   10 | 100.368 |  101.571 |   101.563 | 102.745 |       0.763 |
 
 <!-- BENCHMARK_TABLE_END -->
