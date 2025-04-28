@@ -3,9 +3,9 @@ mod util;
 
 fn main() {
     // Defaults
-    let mut iters = 10;
+    let mut iters = 1;
     let mut problems = Vec::new();
-
+    let mut run_stats = false;
     let mut args = env::args().skip(1).peekable();
     while let Some(arg) = args.peek().cloned() {
         if arg == "--iters" {
@@ -14,6 +14,7 @@ fn main() {
                 eprintln!("Invalid iteration count after --iters");
                 std::process::exit(1);
             });
+            run_stats = true;
             break;
         }
         let num = args
@@ -36,7 +37,7 @@ fn main() {
             eprintln!("No solver for problem {}", problem);
             std::process::exit(1);
         });
-        util::run_stats(problem, solver, iters);
+        util::run_stats(problem, solver, iters, run_stats);
     }
 }
 
