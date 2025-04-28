@@ -4,3 +4,12 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+
+
+
+[profile.release]
+opt-level = 3           # full LLVM optimizations
+lto = "fat"             # whole-program link-time optimization
+codegen-units = 1       # best cross-unit inlining
+panic = "abort"         # faster error paths
+overflow-checks = false 

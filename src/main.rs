@@ -1,11 +1,84 @@
-use std::ops::IndexMut;
+use std::env;
+use std::time::{Duration, Instant};
 
 fn main() {
-    use std::time::Instant;
-    let now = Instant::now();
-    let out = euler_51();
-    let elapsed = now.elapsed();
-    println!("output: {:?} | elapsed: {:.2?}", out, elapsed);
+    // Defaults
+    let mut iters = 10;
+    let mut problems = Vec::new();
+
+    let mut args = env::args().skip(1).peekable();
+    while let Some(arg) = args.peek().cloned() {
+        if arg == "--iters" {
+            args.next();
+            iters = args.next().and_then(|s| s.parse().ok()).unwrap_or_else(|| {
+                eprintln!("Invalid iteration count after --iters");
+                std::process::exit(1);
+            });
+            break;
+        }
+        let num = args
+            .next()
+            .and_then(|s| s.parse::<usize>().ok())
+            .unwrap_or_else(|| {
+                eprintln!("Invalid problem number: {}", arg);
+                std::process::exit(1);
+            });
+        problems.push(num);
+    }
+
+    if problems.is_empty() {
+        eprintln!("Usage: bench <problem> [<problem> ...] [--iters N]");
+        std::process::exit(1);
+    }
+
+    for &problem in &problems {
+        let solver = solve(problem).unwrap_or_else(|| {
+            eprintln!("No solver for problem {}", problem);
+            std::process::exit(1);
+        });
+        run_stats(problem, solver, iters);
+    }
+}
+
+fn run_stats(problem: usize, solver: fn() -> usize, iters: usize) {
+    let mut durations = Vec::with_capacity(iters);
+    for _ in 0..iters {
+        let start = Instant::now();
+        let _ = solver();
+        durations.push(start.elapsed());
+    }
+
+    let mut times: Vec<f64> = durations.iter().map(|d| d.as_secs_f64() * 1000.0).collect();
+    times.sort_by(|a, b| a.partial_cmp(b).unwrap());
+
+    let min = times.first().copied().unwrap_or(0.0);
+    let max = times.last().copied().unwrap_or(0.0);
+    let sum: f64 = times.iter().sum();
+    let mean = sum / (iters as f64);
+
+    let median = if iters % 2 == 0 {
+        let mid = iters / 2;
+        (times[mid - 1] + times[mid]) / 2.0
+    } else {
+        times[iters / 2]
+    };
+
+    let var: f64 = times.iter().map(|t| (t - mean).powi(2)).sum::<f64>() / (iters as f64);
+    let stddev = var.sqrt();
+
+    println!(
+        "Problem {:>2}: runs = {} | min = {:.3}ms | mean = {:.3}ms | median = {:.3}ms | max = {:.3}ms | stddev = {:.3}ms",
+        problem, iters, min, mean, median, max, stddev
+    );
+}
+
+fn solve(problem: usize) -> Option<fn() -> usize> {
+    match problem {
+        10 => Some(euler_10),
+        11 => Some(euler_11),
+        51 => Some(euler_51),
+        _ => None,
+    }
 }
 
 // 22 seconds
@@ -199,7 +272,7 @@ pub fn euler_51() -> usize {
                 digits.reverse();
                 // n is how many digits to set as "wild";
                 let l = digits.len().clone();
-                for n in 2..=l - 1 {
+                for n in 2..l {
                     let mut idx: Vec<Vec<usize>> = vec![];
                     let mut data = vec![];
                     combination(0, n, l, &mut data, &mut idx);
@@ -213,27 +286,13 @@ pub fn euler_51() -> usize {
                             }
                             cp = 0;
                             if data[0] == 0 {
-                                break;
+                                continue;
                             }
                             for digit in data.into_iter() {
                                 cp = cp * 10 + digit;
                             }
-                            if cp >= mult {
-                                // simple prime checking
-                                let mut isprime = true;
-                                for i in 2..=cp.isqrt() {
-                                    if primes[i] {
-                                        if cp % i == 0 {
-                                            isprime = false;
-                                            break;
-                                        }
-                                    }
-                                }
-                                if isprime {
-                                    res.push(cp);
-                                    count += 1;
-                                }
-                            } else if primes[cp] {
+
+                            if primes[cp] {
                                 res.push(cp);
                                 count += 1;
                             }
@@ -247,7 +306,7 @@ pub fn euler_51() -> usize {
             }
             index_val += 1;
         }
-        mult *= 10;
+        mult *= 100;
         if primes.len() < mult {
             primes.resize_with(mult, || true);
         }
