@@ -1,5 +1,51 @@
 use std::env;
 use std::time::{Duration, Instant};
+use std::{
+    fs,
+    io::{Read, Write},
+};
+
+fn write_row_to_readme(
+    problem: usize,
+    iters: usize,
+    min: f64,
+    mean: f64,
+    median: f64,
+    max: f64,
+    stddev: f64,
+) {
+    // build the row
+    let row = format!(
+        "| {:>2} | {:>4} | {:>7.3} | {:>8.3} | {:>9.3} | {:>7.3} | {:>11.3} |\n",
+        problem, iters, min, mean, median, max, stddev
+    );
+
+    // load README.md
+    let mut contents = {
+        let mut s = String::new();
+        fs::File::open("README.md")
+            .and_then(|mut f| f.read_to_string(&mut s))
+            .expect("README.md not found");
+        s
+    };
+
+    // inject between the markers
+    let start_marker = "<!-- BENCHMARK_TABLE_START -->";
+    let end_marker = "<!-- BENCHMARK_TABLE_END -->";
+
+    if let (Some(start), Some(end)) = (contents.find(start_marker), contents.find(end_marker)) {
+        let before = &contents[..start + start_marker.len()];
+        let after = &contents[end..];
+        let new_contents = format!("{}\n{}\n{}", before, row, after);
+
+        // write back
+        let mut file = fs::File::create("README.md").expect("Unable to open README.md");
+        file.write_all(new_contents.as_bytes())
+            .expect("Write failed");
+    } else {
+        eprintln!("README.md markers not found—cannot update table");
+    }
+}
 
 fn main() {
     // Defaults
@@ -70,6 +116,7 @@ fn run_stats(problem: usize, solver: fn() -> usize, iters: usize) {
         "Problem {:>2}: runs = {} | min = {:.3}ms | mean = {:.3}ms | median = {:.3}ms | max = {:.3}ms | stddev = {:.3}ms",
         problem, iters, min, mean, median, max, stddev
     );
+    write_row_to_readme(problem, iters, min, mean, median, max, stddev);
 }
 
 fn solve(problem: usize) -> Option<fn() -> usize> {
