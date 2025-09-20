@@ -45,6 +45,7 @@ fn solve(problem: usize) -> Option<fn() -> usize> {
     match problem {
         10 => Some(euler_10),
         11 => Some(euler_11),
+        12 => Some(euler_12),
         51 => Some(euler_51),
         _ => None,
     }
@@ -208,16 +209,16 @@ pub fn euler_11_flat() -> usize {
     0
 }
 
-// i didn't read
 pub fn euler_51() -> usize {
     let mut mult = 100;
     let mut primes = vec![true; mult];
     primes[0] = false;
     primes[1] = false;
-    let mut digits;
+    let mut digits = vec![];
     let mut index_val: usize = 2;
     let mut cp;
-    let mut count = 0;
+    let mut count;
+    let mut idx: Vec<Vec<usize>> = vec![];
 
     loop {
         count = 0;
@@ -232,7 +233,7 @@ pub fn euler_51() -> usize {
         }
         while index_val < mult {
             if primes[index_val] {
-                digits = vec![];
+                digits.clear();
                 cp = index_val;
                 while cp > 0 {
                     digits.push(cp % 10);
@@ -275,7 +276,7 @@ pub fn euler_51() -> usize {
             }
             index_val += 1;
         }
-        mult *= 100;
+        mult *= 10;
         if primes.len() < mult {
             primes.resize_with(mult, || true);
         }
@@ -293,4 +294,42 @@ fn combination(i: usize, r: usize, d: usize, data: &mut Vec<usize>, res: &mut Ve
         combination(x + 1, r, d, data, res);
         data.pop();
     }
+}
+
+// basically just poker hand parsing
+pub fn euler_54() -> usize {
+    // sort each hand by digit (dictionary/enum for jkqa)
+    // check straight, check flush
+    // stack?
+    //
+    //
+    //straight
+    // flush
+    //
+    // pair
+    //    trips
+    //       quads
+    //       full house
+    //    two pair (this has weird checking use a stack i think)
+    //
+    3
+}
+
+pub fn euler_12() -> usize {
+    const DIVISORS: usize = 500;
+    let mut n = 2;
+    let mut d: usize = 1;
+    let mut divisor_count = 1;
+    while divisor_count < DIVISORS {
+        d += n;
+        n += 1;
+        divisor_count = 1;
+        for i in 1..d.isqrt() + 1 {
+            if d % i == 0 {
+                divisor_count += 2;
+            }
+        }
+    }
+    println!("{:?}, {:?}", d, divisor_count);
+    d
 }

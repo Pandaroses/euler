@@ -31,8 +31,8 @@ pub fn run_stats(problem: usize, solver: fn() -> usize, iters: usize, write: boo
     let stddev = var.sqrt();
 
     println!(
-        "Problem {:>2}: runs = {} | min = {:.3}ms | mean = {:.3}ms | median = {:.3}ms | max = {:.3}ms | stddev = {:.3}ms",
-        problem, iters, min, mean, median, max, stddev
+        "Problem {:>2}: answer = {:#?} |  runs = {} | min = {:.3}ms | mean = {:.3}ms | median = {:.3}ms | max = {:.3}ms | stddev = {:.3}ms",
+        problem, solver, iters, min, mean, median, max, stddev
     );
     if write {
         write_row_to_readme(problem, iters, min, mean, median, max, stddev);
@@ -91,18 +91,15 @@ fn write_row_to_readme(
         }
     }
 
-    // 3) Create the new row
     let new_row = format!(
         "| {:>2} | {:>4} | {:>7.3} | {:>8.3} | {:>9.3} | {:>7.3} | {:>11.3} |",
         problem, iters, min, mean, median, max, stddev
     );
 
-    // 4) Update entries
     problem_entries.retain(|&(n, _)| n != problem);
     problem_entries.push((problem, new_row));
     problem_entries.sort_by_key(|&(n, _)| n);
 
-    // 5) Rebuild the block
     let mut new_block = String::new();
     new_block.push('\n');
     new_block.push_str(header_line);
@@ -122,7 +119,6 @@ fn write_row_to_readme(
 
     new_block.push('\n');
 
-    // 6) Write it all back
     let new_readme = format!("{}{}{}", head, new_block, tail);
     fs::write("README.md", new_readme).expect("failed to write README.md");
 }
